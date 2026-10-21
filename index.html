@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Postulaciones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <p class="eyebrow">Seguimiento laboral</p>
+        <h1>Postulaciones</h1>
+      </header>
+
+      <main class="main-content">
+        <section class="card form-card">
+          <h2>Agregar postulación</h2>
+
+          <form id="formPostulacion" novalidate>
+            <div class="field-group">
+              <label for="empresa">Empresa</label>
+              <input id="empresa" name="empresa" type="text" placeholder="Ej: Mercado Libre" required />
+            </div>
+
+            <div class="field-group">
+              <label for="rol">Rol</label>
+              <input id="rol" name="rol" type="text" placeholder="Ej: Frontend Developer" required />
+            </div>
+
+            <div class="field-group">
+              <label for="fecha">Fecha</label>
+              <input id="fecha" name="fecha" type="date" required />
+            </div>
+
+            <div class="field-group">
+              <label for="estado">Estado</label>
+              <select id="estado" name="estado" required>
+                <option value="Enviado">Enviado</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Rechazado">Rechazado</option>
+                <option value="Oferta">Oferta</option>
+              </select>
+            </div>
+
+            <button type="submit" class="primary-btn">Guardar postulación</button>
+          </form>
+        </section>
+
+        <section class="card list-card">
+          <div class="list-header">
+            <h2>Listado</h2>
+            <span id="totalPostulaciones" class="total-badge">0</span>
+          </div>
+
+          <div id="postulacionesList" class="postulaciones-list" aria-live="polite"></div>
+
+          <div id="emptyState" class="empty-state">
+            <p>No hay postulaciones todavía.</p>
+            <span>Agregá tu primera aplicación para comenzar.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
