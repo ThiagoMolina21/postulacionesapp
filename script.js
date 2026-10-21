@@ -1,31 +1,6 @@
 const STORAGE_KEY = "postulaciones_app_data";
 
-const initialData = [
-  {
-    id: 1,
-    empresa: "Mercado Libre",
-    rol: "Frontend Developer",
-    fecha: "2026-10-10",
-    estado: "Enviado",
-    nota: "",
-  },
-  {
-    id: 2,
-    empresa: "Globant",
-    rol: "UI Developer",
-    fecha: "2026-10-12",
-    estado: "En proceso",
-    nota: "",
-  },
-  {
-    id: 3,
-    empresa: "UTN",
-    rol: "Analista de Sistemas",
-    fecha: "2026-10-08",
-    estado: "Rechazado",
-    nota: "",
-  },
-];
+const initialData = [];
 
 const form = document.getElementById("formPostulacion");
 const postulacionesList = document.getElementById("postulacionesList");
@@ -47,15 +22,13 @@ function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
 
     if (!saved) {
-      return initialData.map(normalizePostulacion);
+      return [];
     }
 
     const parsed = JSON.parse(saved);
-    return Array.isArray(parsed)
-      ? parsed.map(normalizePostulacion)
-      : initialData.map(normalizePostulacion);
+    return Array.isArray(parsed) ? parsed.map(normalizePostulacion) : [];
   } catch (error) {
-    return initialData.map(normalizePostulacion);
+    return [];
   }
 }
 
