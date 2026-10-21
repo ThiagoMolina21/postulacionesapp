@@ -19,6 +19,37 @@
   --offer-text: #1f7a45;
   --danger-bg: #fff1f2;
   --danger-text: #b42318;
+  --input-bg: #ffffff;
+  --textarea-bg: #ffffff;
+  --toggle-bg: #ffffff;
+  --toggle-text: #1f2937;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f172a;
+  --card: #111827;
+  --primary: #8ab4ff;
+  --primary-strong: #b3ccff;
+  --primary-soft: #16253d;
+  --text: #e5ecf8;
+  --muted: #b3bfd3;
+  --border: #243246;
+  --cloud: #111b2d;
+  --shadow: 0 12px 26px rgba(2, 6, 23, 0.45);
+  --sent: #1f2f52;
+  --sent-text: #dfe9ff;
+  --process: #4a3d1f;
+  --process-text: #ffd574;
+  --rejected: #4d1f2a;
+  --rejected-text: #ffc1c1;
+  --offer: #183d2c;
+  --offer-text: #b8f5cf;
+  --danger-bg: #2b1c1d;
+  --danger-text: #ffc9c5;
+  --input-bg: #0d1629;
+  --textarea-bg: #0d1629;
+  --toggle-bg: #17243a;
+  --toggle-text: #e5ecf8;
 }
 
 * {
@@ -58,6 +89,10 @@ textarea {
 }
 
 .topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 18px;
 }
 
@@ -75,6 +110,22 @@ h1 {
   font-size: clamp(2rem, 7vw, 3rem);
   line-height: 1.1;
   letter-spacing: -0.03em;
+}
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--toggle-bg);
+  color: var(--toggle-text);
+  font-weight: 700;
+  padding: 0.7rem 0.9rem;
+  min-width: 145px;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
 }
 
 .main-content {
@@ -120,7 +171,7 @@ select,
 textarea {
   width: 100%;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--input-bg);
   color: var(--text);
   padding: 0.85rem 0.9rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
@@ -137,7 +188,7 @@ textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(35, 85, 216, 0.12);
-  background: #fff;
+  background: var(--input-bg);
 }
 
 .primary-btn {
@@ -277,38 +328,6 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
-.status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.48rem 0.72rem;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  white-space: nowrap;
-  line-height: 1;
-}
-
-.status-enviado {
-  background: var(--sent);
-  color: var(--sent-text);
-}
-
-.status-proceso {
-  background: var(--process);
-  color: var(--process-text);
-}
-
-.status-rechazado {
-  background: var(--rejected);
-  color: var(--rejected-text);
-}
-
-.status-oferta {
-  background: var(--offer);
-  color: var(--offer-text);
-}
-
 .delete-btn {
   border: 1px solid rgba(180, 35, 24, 0.15);
   background: var(--danger-bg);
@@ -341,7 +360,7 @@ textarea:focus {
 
 .status-select {
   min-height: 42px;
-  background: #fff;
+  background: var(--input-bg);
 }
 
 .note-block {
@@ -352,7 +371,7 @@ textarea:focus {
 .postulacion-nota {
   min-height: 80px;
   resize: vertical;
-  background: #fff;
+  background: var(--textarea-bg);
   color: var(--text);
 }
 
@@ -363,7 +382,7 @@ textarea:focus {
   min-height: 180px;
   border-radius: 14px;
   border: 1px dashed var(--border);
-  background: #fbfdff;
+  background: var(--card);
   padding: 20px;
 }
 

@@ -1,4 +1,5 @@
 const STORAGE_KEY = "postulaciones_app_data";
+const THEME_KEY = "postulaciones_theme";
 
 const initialData = [];
 
@@ -7,6 +8,7 @@ const postulacionesList = document.getElementById("postulacionesList");
 const emptyState = document.getElementById("emptyState");
 const totalPostulaciones = document.getElementById("totalPostulaciones");
 const resumen = document.getElementById("resumenEstados");
+const themeToggle = document.getElementById("themeToggle");
 
 let postulaciones = loadData();
 
@@ -213,6 +215,28 @@ function renderPostulaciones() {
   renderResumen();
 }
 
+function applyTheme(theme) {
+  const nextTheme = theme === "dark" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", nextTheme);
+  localStorage.setItem(THEME_KEY, nextTheme);
+
+  if (themeToggle) {
+    themeToggle.textContent = nextTheme === "dark" ? "☀️ Modo claro" : "🌙 Modo oscuro";
+  }
+}
+
+function initializeTheme() {
+  const savedTheme = localStorage.getItem(THEME_KEY) || "light";
+  applyTheme(savedTheme);
+}
+
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    applyTheme(currentTheme === "dark" ? "light" : "dark");
+  });
+}
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
 
@@ -240,4 +264,5 @@ form.addEventListener("submit", (event) => {
   document.getElementById("estado").value = "Enviado";
 });
 
+initializeTheme();
 renderPostulaciones();
