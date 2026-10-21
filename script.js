@@ -31,6 +31,7 @@ const form = document.getElementById("formPostulacion");
 const postulacionesList = document.getElementById("postulacionesList");
 const emptyState = document.getElementById("emptyState");
 const totalPostulaciones = document.getElementById("totalPostulaciones");
+const resumen = document.getElementById("resumenEstados");
 
 let postulaciones = loadData();
 
@@ -95,11 +96,42 @@ function getStatusClass(estado) {
   return map[estado] || "status-enviado";
 }
 
+function getResumenData() {
+  const estados = ["Enviado", "En proceso", "Rechazado", "Oferta"];
+
+  return estados.map((estado) => ({
+    estado,
+    total: postulaciones.filter((postulacion) => postulacion.estado === estado).length,
+  }));
+}
+
+function renderResumen() {
+  const resumenData = getResumenData();
+
+  resumen.innerHTML = `
+    <div class="summary-card total">
+      <span class="summary-label">Total</span>
+      <strong>${postulaciones.length}</strong>
+    </div>
+    ${resumenData
+      .map(
+        ({ estado, total }) => `
+          <div class="summary-card ${getStatusClass(estado)}">
+            <span class="summary-label">${estado}</span>
+            <strong>${total}</strong>
+          </div>
+        `
+      )
+      .join("")}
+  `;
+}
+
 function renderPostulaciones() {
   if (!postulaciones.length) {
     postulacionesList.innerHTML = "";
     emptyState.classList.remove("hidden");
     totalPostulaciones.textContent = "0";
+    renderResumen();
     return;
   }
 
@@ -160,6 +192,7 @@ function renderPostulaciones() {
       );
 
       saveData();
+      renderResumen();
       renderPostulaciones();
     });
   });
@@ -176,6 +209,8 @@ function renderPostulaciones() {
       saveData();
     });
   });
+
+  renderResumen();
 }
 
 form.addEventListener("submit", (event) => {
