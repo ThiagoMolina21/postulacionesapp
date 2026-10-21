@@ -7,6 +7,7 @@ const initialData = [
     rol: "Frontend Developer",
     fecha: "2026-10-10",
     estado: "Enviado",
+    nota: "",
   },
   {
     id: 2,
@@ -14,6 +15,7 @@ const initialData = [
     rol: "UI Developer",
     fecha: "2026-10-12",
     estado: "En proceso",
+    nota: "",
   },
   {
     id: 3,
@@ -21,6 +23,7 @@ const initialData = [
     rol: "Analista de Sistemas",
     fecha: "2026-10-08",
     estado: "Rechazado",
+    nota: "",
   },
 ];
 
@@ -31,18 +34,27 @@ const totalPostulaciones = document.getElementById("totalPostulaciones");
 
 let postulaciones = loadData();
 
+function normalizePostulacion(postulacion) {
+  return {
+    ...postulacion,
+    nota: typeof postulacion.nota === "string" ? postulacion.nota : "",
+  };
+}
+
 function loadData() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
 
     if (!saved) {
-      return initialData;
+      return initialData.map(normalizePostulacion);
     }
 
     const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) && parsed.length ? parsed : initialData;
+    return Array.isArray(parsed)
+      ? parsed.map(normalizePostulacion)
+      : initialData.map(normalizePostulacion);
   } catch (error) {
-    return initialData;
+    return initialData.map(normalizePostulacion);
   }
 }
 
@@ -52,6 +64,15 @@ function saveData() {
   } catch (error) {
     console.error("No se pudo guardar en localStorage:", error);
   }
+}
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function formatDate(dateString) {
@@ -88,12 +109,7 @@ function renderPostulaciones() {
   postulacionesList.innerHTML = postulaciones
     .map((postulacion) => {
       const statusClass = getStatusClass(postulacion.estado);
-      const options = [
-        "Enviado",
-        "En proceso",
-        "Rechazado",
-        "Oferta",
-      ]
+      const options = ["Enviado", "En proceso", "Rechazado", "Oferta"]
         .map(
           (estado) =>
             `<option value="${estado}" ${postulacion.estado === estado ? "selected" : ""}>${estado}</option>`
@@ -104,8 +120,8 @@ function renderPostulaciones() {
         <article class="postulacion-item">
           <div class="postulacion-top">
             <div>
-              <h3 class="company-name">${postulacion.empresa}</h3>
-              <p class="role-name">${postulacion.rol}</p>
+              <h3 class="company-name">${escapeHtml(postulacion.empresa)}</h3>
+              <p class="role-name">${escapeHtml(postulacion.rol)}</p>
             </div>
             <span class="status ${statusClass}">${postulacion.estado}</span>
           </div>
@@ -114,10 +130,20 @@ function renderPostulaciones() {
             <span>📅 ${formatDate(postulacion.fecha)}</span>
             <label>
               <span>Estado:</span>
-              <select class="status-select" data-id="${postulacion.id}" aria-label="Cambiar estado de ${postulacion.empresa}">
+              <select class="status-select" data-id="${postulacion.id}" aria-label="Cambiar estado de ${escapeHtml(postulacion.empresa)}">
                 ${options}
               </select>
             </label>
+          </div>
+
+          <div class="note-block">
+            <label class="note-label" for="nota-${postulacion.id}">Nota</label>
+            <textarea
+              id="nota-${postulacion.id}"
+              class="postulacion-nota"
+              data-id="${postulacion.id}"
+              placeholder="Agregar una nota..."
+            >${escapeHtml(postulacion.nota)}</textarea>
           </div>
         </article>
       `;
@@ -135,6 +161,19 @@ function renderPostulaciones() {
 
       saveData();
       renderPostulaciones();
+    });
+  });
+
+  document.querySelectorAll(".postulacion-nota").forEach((textarea) => {
+    textarea.addEventListener("blur", (event) => {
+      const id = Number(event.target.dataset.id);
+      const nota = event.target.value;
+
+      postulaciones = postulaciones.map((postulacion) =>
+        postulacion.id === id ? { ...postulacion, nota } : postulacion
+      );
+
+      saveData();
     });
   });
 }
@@ -157,6 +196,7 @@ form.addEventListener("submit", (event) => {
     rol,
     fecha,
     estado,
+    nota: "",
   });
 
   saveData();
