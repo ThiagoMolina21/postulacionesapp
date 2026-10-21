@@ -9,8 +9,13 @@ const emptyState = document.getElementById("emptyState");
 const totalPostulaciones = document.getElementById("totalPostulaciones");
 const resumen = document.getElementById("resumenEstados");
 const themeToggle = document.getElementById("themeToggle");
+const confirmModal = document.getElementById("confirmModal");
+const confirmText = document.getElementById("confirmText");
+const cancelDeleteBtn = document.getElementById("cancelDelete");
+const confirmDeleteBtn = document.getElementById("confirmDelete");
 
 let postulaciones = loadData();
+let postulacionAEliminar = null;
 
 function normalizePostulacion(postulacion) {
   return {
@@ -197,22 +202,18 @@ function renderPostulaciones() {
         return;
       }
 
-      const confirmar = window.confirm(
-        `¿Seguro que querés eliminar esta postulación?\n\n${postulacion.empresa} - ${postulacion.rol}`
-      );
-
-      if (!confirmar) {
-        return;
-      }
-
-      postulaciones = postulaciones.filter((item) => item.id !== id);
-      saveData();
-      renderResumen();
-      renderPostulaciones();
+      postulacionAEliminar = postulacion;
+      confirmText.textContent = `${postulacion.empresa} — ${postulacion.rol}`;
+      confirmModal.classList.remove("hidden");
     });
   });
 
   renderResumen();
+}
+
+function closeConfirmModal() {
+  confirmModal.classList.add("hidden");
+  postulacionAEliminar = null;
 }
 
 function applyTheme(theme) {
@@ -236,6 +237,30 @@ if (themeToggle) {
     applyTheme(currentTheme === "dark" ? "light" : "dark");
   });
 }
+
+if (cancelDeleteBtn) {
+  cancelDeleteBtn.addEventListener("click", closeConfirmModal);
+}
+
+if (confirmDeleteBtn) {
+  confirmDeleteBtn.addEventListener("click", () => {
+    if (!postulacionAEliminar) {
+      closeConfirmModal();
+      return;
+    }
+
+    postulaciones = postulaciones.filter((item) => item.id !== postulacionAEliminar.id);
+    saveData();
+    closeConfirmModal();
+    renderPostulaciones();
+  });
+}
+
+confirmModal.addEventListener("click", (event) => {
+  if (event.target === confirmModal) {
+    closeConfirmModal();
+  }
+});
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
