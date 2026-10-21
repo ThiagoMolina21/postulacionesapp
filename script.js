@@ -88,6 +88,17 @@ function renderPostulaciones() {
   postulacionesList.innerHTML = postulaciones
     .map((postulacion) => {
       const statusClass = getStatusClass(postulacion.estado);
+      const options = [
+        "Enviado",
+        "En proceso",
+        "Rechazado",
+        "Oferta",
+      ]
+        .map(
+          (estado) =>
+            `<option value="${estado}" ${postulacion.estado === estado ? "selected" : ""}>${estado}</option>`
+        )
+        .join("");
 
       return `
         <article class="postulacion-item">
@@ -101,11 +112,31 @@ function renderPostulaciones() {
 
           <div class="meta">
             <span>📅 ${formatDate(postulacion.fecha)}</span>
+            <label>
+              <span>Estado:</span>
+              <select class="status-select" data-id="${postulacion.id}" aria-label="Cambiar estado de ${postulacion.empresa}">
+                ${options}
+              </select>
+            </label>
           </div>
         </article>
       `;
     })
     .join("");
+
+  document.querySelectorAll(".status-select").forEach((select) => {
+    select.addEventListener("change", (event) => {
+      const id = Number(event.target.dataset.id);
+      const estado = event.target.value;
+
+      postulaciones = postulaciones.map((postulacion) =>
+        postulacion.id === id ? { ...postulacion, estado } : postulacion
+      );
+
+      saveData();
+      renderPostulaciones();
+    });
+  });
 }
 
 form.addEventListener("submit", (event) => {
