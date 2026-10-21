@@ -32,10 +32,13 @@ const totalPostulaciones = document.getElementById("totalPostulaciones");
 let postulaciones = loadData();
 
 function loadData() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return initialData;
-
   try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (!saved) {
+      return initialData;
+    }
+
     const parsed = JSON.parse(saved);
     return Array.isArray(parsed) && parsed.length ? parsed : initialData;
   } catch (error) {
@@ -44,7 +47,11 @@ function loadData() {
 }
 
 function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(postulaciones));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(postulaciones));
+  } catch (error) {
+    console.error("No se pudo guardar en localStorage:", error);
+  }
 }
 
 function formatDate(dateString) {
