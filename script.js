@@ -155,7 +155,10 @@ function renderPostulaciones() {
               <h3 class="company-name">${escapeHtml(postulacion.empresa)}</h3>
               <p class="role-name">${escapeHtml(postulacion.rol)}</p>
             </div>
-            <span class="status ${statusClass}">${postulacion.estado}</span>
+            <div class="item-actions">
+              <span class="status ${statusClass}">${postulacion.estado}</span>
+              <button class="delete-btn" data-id="${postulacion.id}" type="button">Eliminar</button>
+            </div>
           </div>
 
           <div class="meta">
@@ -207,6 +210,30 @@ function renderPostulaciones() {
       );
 
       saveData();
+    });
+  });
+
+  document.querySelectorAll(".delete-btn").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      const id = Number(event.target.dataset.id);
+      const postulacion = postulaciones.find((item) => item.id === id);
+
+      if (!postulacion) {
+        return;
+      }
+
+      const confirmar = window.confirm(
+        `¿Seguro que querés eliminar esta postulación?\n\n${postulacion.empresa} - ${postulacion.rol}`
+      );
+
+      if (!confirmar) {
+        return;
+      }
+
+      postulaciones = postulaciones.filter((item) => item.id !== id);
+      saveData();
+      renderResumen();
+      renderPostulaciones();
     });
   });
 
