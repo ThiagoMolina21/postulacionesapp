@@ -200,15 +200,10 @@ function renderPostulaciones() {
   document.querySelectorAll(".delete-btn").forEach((button) => {
     button.addEventListener("click", (event) => {
       const id = Number(event.target.dataset.id);
-      const postulacion = postulaciones.find((item) => item.id === id);
 
-      if (!postulacion) {
-        return;
-      }
-
-      postulacionAEliminar = postulacion;
-      confirmText.textContent = `${postulacion.empresa} — ${postulacion.rol}`;
-      confirmModal.classList.remove("hidden");
+      postulaciones = postulaciones.filter((item) => item.id !== id);
+      saveData();
+      renderPostulaciones();
     });
   });
 
@@ -216,7 +211,9 @@ function renderPostulaciones() {
 }
 
 function closeConfirmModal() {
-  confirmModal.classList.add("hidden");
+  if (confirmModal) {
+    confirmModal.classList.add("hidden");
+  }
   postulacionAEliminar = null;
 }
 
