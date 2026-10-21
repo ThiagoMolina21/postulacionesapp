@@ -14,7 +14,7 @@ const confirmText = document.getElementById("confirmText");
 const cancelDeleteBtn = document.getElementById("cancelDelete");
 const confirmDeleteBtn = document.getElementById("confirmDelete");
 
-let postulaciones = loadData();
+let postulaciones = Array.isArray(loadData()) ? loadData() : [];
 let postulacionAEliminar = null;
 
 function normalizePostulacion(postulacion) {
@@ -41,7 +41,9 @@ function loadData() {
 
 function saveData() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(postulaciones));
+    const safeList = Array.isArray(postulaciones) ? postulaciones : [];
+    postulaciones = safeList;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeList));
   } catch (error) {
     console.error("No se pudo guardar en localStorage:", error);
   }
@@ -107,6 +109,8 @@ function renderResumen() {
 }
 
 function renderPostulaciones() {
+  postulaciones = Array.isArray(postulaciones) ? postulaciones : [];
+
   if (!postulaciones.length) {
     postulacionesList.innerHTML = "";
     emptyState.classList.remove("hidden");
@@ -256,38 +260,43 @@ if (confirmDeleteBtn) {
   });
 }
 
-confirmModal.addEventListener("click", (event) => {
-  if (event.target === confirmModal) {
-    closeConfirmModal();
-  }
-});
-
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-
-  const empresa = document.getElementById("empresa").value.trim();
-  const rol = document.getElementById("rol").value.trim();
-  const fecha = document.getElementById("fecha").value;
-  const estado = document.getElementById("estado").value;
-
-  if (!empresa || !rol || !fecha) {
-    return;
-  }
-
-  postulaciones.unshift({
-    id: Date.now(),
-    empresa,
-    rol,
-    fecha,
-    estado,
-    nota: "",
+if (confirmModal) {
+  confirmModal.addEventListener("click", (event) => {
+    if (event.target === confirmModal) {
+      closeConfirmModal();
+    }
   });
+}
 
-  saveData();
-  renderPostulaciones();
-  form.reset();
-  document.getElementById("estado").value = "Enviado";
-});
+if (form) {
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const empresa = document.getElementById("empresa").value.trim();
+    const rol = document.getElementById("rol").value.trim();
+    const fecha = document.getElementById("fecha").value;
+    const estado = document.getElementById("estado").value;
+
+    if (!empresa || !rol || !fecha) {
+      return;
+    }
+
+    const nuevaPostulacion = {
+      id: Date.now(),
+      empresa,
+      rol,
+      fecha,
+      estado,
+      nota: "",
+    };
+
+    postulaciones = Array.isArray(postulaciones) ? [nuevaPostulacion, ...postulaciones] : [nuevaPostulacion];
+    saveData();
+    renderPostulaciones();
+    form.reset();
+    document.getElementById("estado").value = "Enviado";
+  });
+}
 
 initializeTheme();
 renderPostulaciones();
