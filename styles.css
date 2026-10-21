@@ -23,6 +23,7 @@
   --textarea-bg: #ffffff;
   --toggle-bg: #ffffff;
   --toggle-text: #1f2937;
+  --heading-color: #1f2937;
 }
 
 :root[data-theme="dark"] {
@@ -50,6 +51,7 @@
   --textarea-bg: #0d1629;
   --toggle-bg: #17243a;
   --toggle-text: #e5ecf8;
+  --heading-color: #ffffff;
 }
 
 * {
@@ -64,8 +66,9 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
-  background: linear-gradient(180deg, #edf5ff 0%, var(--bg) 100%);
+  background: var(--bg);
   color: var(--text);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 button,
@@ -110,6 +113,7 @@ h1 {
   font-size: clamp(2rem, 7vw, 3rem);
   line-height: 1.1;
   letter-spacing: -0.03em;
+  color: var(--heading-color);
 }
 
 .theme-toggle {
