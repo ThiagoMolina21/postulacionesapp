@@ -70,9 +70,11 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
-  background: var(--bg);
+  background: linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 82%, #ffffff 18%) 100%);
   color: var(--text);
   transition: background 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -90,7 +92,7 @@ textarea {
 }
 
 .app-shell {
-  max-width: 1100px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 20px 14px 40px;
 }
@@ -100,7 +102,13 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 18px;
+}
+
+.topbar > div {
+  min-width: 0;
+  flex: 1 1 220px;
 }
 
 .eyebrow {
@@ -118,6 +126,7 @@ h1 {
   line-height: 1.1;
   letter-spacing: -0.03em;
   color: var(--heading-color);
+  word-break: break-word;
 }
 
 .theme-toggle {
@@ -127,6 +136,7 @@ h1 {
   font-weight: 700;
   padding: 0.7rem 0.9rem;
   min-width: 145px;
+  white-space: nowrap;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
@@ -164,6 +174,7 @@ h1 {
 .field-group {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .field-group label,
@@ -181,8 +192,9 @@ textarea {
   border: 1px solid var(--border);
   background: var(--input-bg);
   color: var(--text);
-  padding: 0.85rem 0.9rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  padding: 0.88rem 0.95rem;
+  min-height: 48px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 input::placeholder,
@@ -269,7 +281,8 @@ textarea:focus {
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--card);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .summary-label {
@@ -322,13 +335,16 @@ textarea:focus {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px;
+  min-width: 0;
 }
 
 .postulacion-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .company-name {
@@ -353,6 +369,46 @@ textarea:focus {
   justify-content: flex-end;
   gap: 8px;
   flex-wrap: wrap;
+  margin-left: auto;
+  max-width: 100%;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  line-height: 1;
+}
+
+.status.status-enviado {
+  background: var(--sent);
+  color: var(--sent-text);
+  border-color: rgba(41, 77, 168, 0.14);
+}
+
+.status.status-proceso {
+  background: var(--process);
+  color: var(--process-text);
+  border-color: rgba(154, 93, 0, 0.14);
+}
+
+.status.status-rechazado {
+  background: var(--rejected);
+  color: var(--rejected-text);
+  border-color: rgba(180, 35, 24, 0.14);
+}
+
+.status.status-oferta {
+  background: var(--offer);
+  color: var(--offer-text);
+  border-color: rgba(31, 122, 69, 0.14);
 }
 
 .delete-btn {
@@ -377,17 +433,25 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   line-height: 1.5;
+  min-width: 0;
 }
 
 .meta label {
-  display: grid;
-  gap: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
+}
+
+.meta label > span {
+  flex-shrink: 0;
 }
 
 .status-select {
   min-height: 42px;
   background: var(--input-bg);
+  min-width: 0;
 }
 
 .note-block {
@@ -396,7 +460,7 @@ textarea:focus {
 }
 
 .postulacion-nota {
-  min-height: 80px;
+  min-height: 96px;
   resize: vertical;
   background: var(--textarea-bg);
   color: var(--text);
@@ -506,6 +570,10 @@ textarea:focus {
     width: auto;
     min-width: 180px;
   }
+
+  .primary-btn {
+    width: auto;
+  }
 }
 
 @media (max-width: 420px) {
@@ -516,6 +584,14 @@ textarea:focus {
 
   .card {
     padding: 16px;
+  }
+
+  .topbar {
+    align-items: stretch;
+  }
+
+  .theme-toggle {
+    width: 100%;
   }
 
   .summary-section {
@@ -530,10 +606,24 @@ textarea:focus {
   .item-actions {
     width: 100%;
     justify-content: space-between;
+    margin-left: 0;
   }
 
   .delete-btn {
     flex: 1;
+  }
+
+  .meta {
+    gap: 10px;
+  }
+
+  .meta label {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .status-select {
+    width: 100%;
   }
 
   .confirm-modal__actions {
