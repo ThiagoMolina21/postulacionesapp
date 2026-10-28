@@ -4,6 +4,8 @@
   --primary: #2355d8;
   --primary-strong: #133da8;
   --primary-soft: #edf3ff;
+  --primary-action: #2355d8;
+  --primary-action-hover: #1b47be;
   --text: #1f2937;
   --muted: #5c6473;
   --border: #e4e9f2;
@@ -34,6 +36,8 @@
   --primary: #8ab4ff;
   --primary-strong: #b3ccff;
   --primary-soft: #16253d;
+  --primary-action: #2355d8;
+  --primary-action-hover: #1b47be;
   --text: #e5ecf8;
   --muted: #b3bfd3;
   --border: #243246;
@@ -70,7 +74,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: "Inter", sans-serif;
-  background: linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 82%, #ffffff 18%) 100%);
+  background: var(--bg);
   color: var(--text);
   transition: background 0.2s ease, color 0.2s ease;
   -webkit-font-smoothing: antialiased;
@@ -89,6 +93,38 @@ input,
 select,
 textarea {
   border-radius: 12px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.login-card {
+  width: min(100%, 420px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 28px 22px;
+}
+
+.login-card h2 {
+  margin: 0 0 18px;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  line-height: 1.2;
+  color: var(--heading-color);
+}
+
+.login-card .field-group {
+  margin-bottom: 18px;
 }
 
 .app-shell {
@@ -111,6 +147,31 @@ textarea {
   flex: 1 1 220px;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   font-size: 0.72rem;
@@ -129,7 +190,8 @@ h1 {
   word-break: break-word;
 }
 
-.theme-toggle {
+.theme-toggle,
+.logout-btn {
   border: 1px solid var(--border);
   background: var(--toggle-bg);
   color: var(--toggle-text);
@@ -141,7 +203,14 @@ h1 {
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
-.theme-toggle:hover {
+.logout-btn {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border-color: rgba(180, 35, 24, 0.15);
+}
+
+.theme-toggle:hover,
+.logout-btn:hover {
   transform: translateY(-1px);
   border-color: var(--primary);
 }
@@ -179,7 +248,8 @@ h1 {
 
 .field-group label,
 .note-label,
-.meta label {
+.meta label,
+.filter-field label {
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--muted);
@@ -213,16 +283,17 @@ textarea:focus {
 
 .primary-btn {
   border: none;
-  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  background: var(--primary-action);
   color: #fff;
   font-weight: 700;
   padding: 0.95rem 1rem;
   cursor: pointer;
   box-shadow: 0 10px 18px rgba(35, 85, 216, 0.2);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
 .primary-btn:hover {
+  background: var(--primary-action-hover);
   transform: translateY(-1px);
   box-shadow: 0 14px 22px rgba(35, 85, 216, 0.22);
 }
@@ -254,6 +325,22 @@ textarea:focus {
   margin-bottom: 14px;
 }
 
+.filter-bar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 18px;
+}
+
+.filter-field {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 240px);
+}
+
+.filter-field select {
+  min-width: 0;
+}
+
 .total-badge {
   min-width: 34px;
   height: 34px;
@@ -282,7 +369,6 @@ textarea:focus {
   border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--card);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .summary-label {
@@ -590,7 +676,8 @@ textarea:focus {
     align-items: stretch;
   }
 
-  .theme-toggle {
+  .theme-toggle,
+  .logout-btn {
     width: 100%;
   }
 

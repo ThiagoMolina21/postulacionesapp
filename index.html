@@ -10,16 +10,36 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <div id="loginScreen" class="login-screen">
+      <div class="login-card">
+        <p class="eyebrow">Bienvenido</p>
+        <h2>Ingresá tu nombre</h2>
+
+        <form id="loginForm" novalidate>
+          <div class="field-group">
+            <label for="nombreUsuario">Nombre</label>
+            <input id="nombreUsuario" name="nombreUsuario" type="text" placeholder="Ej: Ana" required />
+          </div>
+
+          <button type="submit" class="primary-btn">Entrar</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="appShell" class="app-shell hidden">
       <header class="topbar">
         <div>
           <p class="eyebrow">Seguimiento laboral</p>
           <h1>Postulaciones</h1>
         </div>
 
-        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema">
-          🌙 Modo oscuro
-        </button>
+        <div class="topbar-actions">
+          <span id="userBadge" class="user-badge" aria-live="polite"></span>
+          <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema">
+            🌙 Modo oscuro
+          </button>
+          <button id="logoutBtn" class="logout-btn hidden" type="button">Cerrar sesión</button>
+        </div>
       </header>
 
       <main class="main-content">
@@ -59,6 +79,19 @@
         <section class="card list-card">
           <div class="summary-section" id="resumenEstados" aria-live="polite"></div>
 
+          <div class="filter-bar">
+            <div class="filter-field">
+              <label for="estadoFiltro">Filtrar por estado</label>
+              <select id="estadoFiltro" name="estadoFiltro">
+                <option value="Todos">Todos</option>
+                <option value="Enviado">Enviado</option>
+                <option value="En proceso">En proceso</option>
+                <option value="Rechazado">Rechazado</option>
+                <option value="Oferta">Oferta</option>
+              </select>
+            </div>
+          </div>
+
           <div class="list-header">
             <h2>Listado</h2>
             <span id="totalPostulaciones" class="total-badge">0</span>
@@ -72,6 +105,18 @@
           </div>
         </section>
       </main>
+    </div>
+
+    <div id="confirmModal" class="confirm-modal hidden" aria-hidden="true">
+      <div class="confirm-modal__content" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <p class="confirm-modal__eyebrow">Confirmar eliminación</p>
+        <h3 id="confirmTitle">Eliminar postulación</h3>
+        <p id="confirmText" class="confirm-modal__text">¿Seguro que quieres eliminar esta postulación?</p>
+        <div class="confirm-modal__actions">
+          <button id="cancelDelete" type="button" class="secondary-btn">Cancelar</button>
+          <button id="confirmDelete" type="button" class="danger-btn">Eliminar</button>
+        </div>
+      </div>
     </div>
 
     <script src="script.js"></script>

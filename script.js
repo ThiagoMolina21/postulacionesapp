@@ -1,6 +1,14 @@
 const STORAGE_KEY = "postulaciones_app_data";
 const THEME_KEY = "postulaciones_theme";
 const FILTER_KEY = "postulaciones_filter";
+const USER_KEY = "postulaciones_app_user";
+
+const appShell = document.getElementById("appShell");
+const loginScreen = document.getElementById("loginScreen");
+const loginForm = document.getElementById("loginForm");
+const nombreUsuarioInput = document.getElementById("nombreUsuario");
+const userBadge = document.getElementById("userBadge");
+const logoutBtn = document.getElementById("logoutBtn");
 
 const form = document.getElementById("formPostulacion");
 const postulacionesList = document.getElementById("postulacionesList");
@@ -37,6 +45,30 @@ function loadData() {
     return Array.isArray(parsed) ? parsed.map(normalizePostulacion) : [];
   } catch (error) {
     return [];
+  }
+}
+
+function loadUser() {
+  try {
+    return localStorage.getItem(USER_KEY) || "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function saveUser(nombre) {
+  try {
+    localStorage.setItem(USER_KEY, nombre);
+  } catch (error) {
+    console.error("No se pudo guardar el usuario:", error);
+  }
+}
+
+function clearUser() {
+  try {
+    localStorage.removeItem(USER_KEY);
+  } catch (error) {
+    console.error("No se pudo cerrar la sesión:", error);
   }
 }
 
@@ -261,10 +293,41 @@ function initializeTheme() {
   applyTheme(savedTheme);
 }
 
+function renderAuthState() {
+  const userName = loadUser();
+  const isLoggedIn = Boolean(userName);
+
+  if (appShell) {
+    appShell.classList.toggle("hidden", !isLoggedIn);
+  }
+
+  if (loginScreen) {
+    loginScreen.classList.toggle("hidden", isLoggedIn);
+  }
+
+  if (userBadge) {
+    userBadge.textContent = isLoggedIn ? `Hola, ${userName}` : "";
+  }
+
+  if (logoutBtn) {
+    logoutBtn.classList.toggle("hidden", !isLoggedIn);
+  }
+}
+
 if (themeToggle) {
   themeToggle.addEventListener("click", () => {
     const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
     applyTheme(currentTheme === "dark" ? "light" : "dark");
+  });
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    clearUser();
+    renderAuthState();
+    if (loginForm && nombreUsuarioInput) {
+      nombreUsuarioInput.focus();
+    }
   });
 }
 
@@ -332,5 +395,22 @@ if (form) {
   });
 }
 
+if (loginForm && nombreUsuarioInput) {
+  loginForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const nombre = nombreUsuarioInput.value.trim();
+    if (!nombre) {
+      nombreUsuarioInput.focus();
+      return;
+    }
+
+    saveUser(nombre);
+    renderAuthState();
+    loginForm.reset();
+  });
+}
+
 initializeTheme();
+renderAuthState();
 renderPostulaciones();
