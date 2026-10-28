@@ -84,6 +84,12 @@ function getStatusClass(estado) {
   return map[estado] || "status-enviado";
 }
 
+function applyStatusSelectClass(select, estado) {
+  const nextClass = getStatusClass(estado);
+  select.classList.remove("status-enviado", "status-proceso", "status-rechazado", "status-oferta");
+  select.classList.add(nextClass);
+}
+
 function getResumenData() {
   const estados = ["Enviado", "En proceso", "Rechazado", "Oferta"];
 
@@ -169,19 +175,18 @@ function renderPostulaciones() {
               <p class="role-name">${escapeHtml(postulacion.rol)}</p>
             </div>
             <div class="item-actions">
-              <span class="status ${statusClass}">${postulacion.estado}</span>
+              <label class="status-control">
+                <span>Estado</span>
+                <select class="status-select ${statusClass}" data-id="${postulacion.id}" aria-label="Cambiar estado de ${escapeHtml(postulacion.empresa)}">
+                  ${options}
+                </select>
+              </label>
               <button class="delete-btn" data-id="${postulacion.id}" type="button">Eliminar</button>
             </div>
           </div>
 
           <div class="meta">
             <span>📅 ${formatDate(postulacion.fecha)}</span>
-            <label>
-              <span>Estado:</span>
-              <select class="status-select" data-id="${postulacion.id}" aria-label="Cambiar estado de ${escapeHtml(postulacion.empresa)}">
-                ${options}
-              </select>
-            </label>
           </div>
 
           ${cvMarkup}
@@ -201,9 +206,13 @@ function renderPostulaciones() {
     .join("");
 
   document.querySelectorAll(".status-select").forEach((select) => {
+    applyStatusSelectClass(select, select.value);
+
     select.addEventListener("change", (event) => {
       const id = Number(event.target.dataset.id);
       const estado = event.target.value;
+
+      applyStatusSelectClass(event.target, estado);
 
       postulaciones = postulaciones.map((postulacion) =>
         postulacion.id === id ? { ...postulacion, estado } : postulacion
