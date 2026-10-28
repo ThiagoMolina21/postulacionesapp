@@ -240,7 +240,9 @@ function renderPostulaciones() {
 }
 
 function closeConfirmModal() {
-  confirmModal.classList.add("hidden");
+  if (confirmModal) {
+    confirmModal.classList.add("hidden");
+  }
   postulacionAEliminar = null;
 }
 
@@ -293,38 +295,42 @@ if (filterSelect) {
   });
 }
 
-confirmModal.addEventListener("click", (event) => {
-  if (event.target === confirmModal) {
-    closeConfirmModal();
-  }
-});
-
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-
-  const empresa = document.getElementById("empresa").value.trim();
-  const rol = document.getElementById("rol").value.trim();
-  const fecha = document.getElementById("fecha").value;
-  const estado = document.getElementById("estado").value;
-
-  if (!empresa || !rol || !fecha) {
-    return;
-  }
-
-  postulaciones.unshift({
-    id: Date.now(),
-    empresa,
-    rol,
-    fecha,
-    estado,
-    nota: "",
+if (confirmModal) {
+  confirmModal.addEventListener("click", (event) => {
+    if (event.target === confirmModal) {
+      closeConfirmModal();
+    }
   });
+}
 
-  saveData();
-  renderPostulaciones();
-  form.reset();
-  document.getElementById("estado").value = "Enviado";
-});
+if (form) {
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const empresa = document.getElementById("empresa").value.trim();
+    const rol = document.getElementById("rol").value.trim();
+    const fecha = document.getElementById("fecha").value;
+    const estado = document.getElementById("estado").value;
+
+    if (!empresa || !rol || !fecha) {
+      return;
+    }
+
+    postulaciones.unshift({
+      id: Date.now(),
+      empresa,
+      rol,
+      fecha,
+      estado,
+      nota: "",
+    });
+
+    saveData();
+    renderPostulaciones();
+    form.reset();
+    document.getElementById("estado").value = "Enviado";
+  });
+}
 
 initializeTheme();
 renderPostulaciones();
