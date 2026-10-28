@@ -1,7 +1,6 @@
 const STORAGE_KEY = "postulaciones_app_data";
 const THEME_KEY = "postulaciones_theme";
-
-const initialData = [];
+const FILTER_KEY = "postulaciones_filter";
 
 const form = document.getElementById("formPostulacion");
 const postulacionesList = document.getElementById("postulacionesList");
@@ -13,9 +12,11 @@ const confirmModal = document.getElementById("confirmModal");
 const confirmText = document.getElementById("confirmText");
 const cancelDeleteBtn = document.getElementById("cancelDelete");
 const confirmDeleteBtn = document.getElementById("confirmDelete");
+const filterSelect = document.getElementById("estadoFiltro");
 
-let postulaciones = Array.isArray(loadData()) ? loadData() : [];
+let postulaciones = loadData();
 let postulacionAEliminar = null;
+let filtroActual = loadFilter();
 
 function normalizePostulacion(postulacion) {
   return {
@@ -39,11 +40,26 @@ function loadData() {
   }
 }
 
+function loadFilter() {
+  try {
+    const saved = localStorage.getItem(FILTER_KEY);
+    return saved || "Todos";
+  } catch (error) {
+    return "Todos";
+  }
+}
+
+function saveFilter() {
+  try {
+    localStorage.setItem(FILTER_KEY, filtroActual);
+  } catch (error) {
+    console.error("No se pudo guardar el filtro en localStorage:", error);
+  }
+}
+
 function saveData() {
   try {
-    const safeList = Array.isArray(postulaciones) ? postulaciones : [];
-    postulaciones = safeList;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeList));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(postulaciones));
   } catch (error) {
     console.error("No se pudo guardar en localStorage:", error);
   }
@@ -78,6 +94,14 @@ function getStatusClass(estado) {
   return map[estado] || "status-enviado";
 }
 
+function getFilteredPostulaciones() {
+  if (filtroActual === "Todos") {
+    return postulaciones;
+  }
+
+  return postulaciones.filter((postulacion) => postulacion.estado === filtroActual);
+}
+
 function getResumenData() {
   const estados = ["Enviado", "En proceso", "Rechazado", "Oferta"];
 
@@ -109,9 +133,9 @@ function renderResumen() {
 }
 
 function renderPostulaciones() {
-  postulaciones = Array.isArray(postulaciones) ? postulaciones : [];
+  const filtradas = getFilteredPostulaciones();
 
-  if (!postulaciones.length) {
+  if (!filtradas.length) {
     postulacionesList.innerHTML = "";
     emptyState.classList.remove("hidden");
     totalPostulaciones.textContent = "0";
@@ -120,9 +144,9 @@ function renderPostulaciones() {
   }
 
   emptyState.classList.add("hidden");
-  totalPostulaciones.textContent = String(postulaciones.length);
+  totalPostulaciones.textContent = String(filtradas.length);
 
-  postulacionesList.innerHTML = postulaciones
+  postulacionesList.innerHTML = filtradas
     .map((postulacion) => {
       const statusClass = getStatusClass(postulacion.estado);
       const options = ["Enviado", "En proceso", "Rechazado", "Oferta"]
@@ -200,10 +224,15 @@ function renderPostulaciones() {
   document.querySelectorAll(".delete-btn").forEach((button) => {
     button.addEventListener("click", (event) => {
       const id = Number(event.target.dataset.id);
+      const postulacion = postulaciones.find((item) => item.id === id);
 
-      postulaciones = postulaciones.filter((item) => item.id !== id);
-      saveData();
-      renderPostulaciones();
+      if (!postulacion) {
+        return;
+      }
+
+      postulacionAEliminar = postulacion;
+      confirmText.textContent = `${postulacion.empresa} — ${postulacion.rol}`;
+      confirmModal.classList.remove("hidden");
     });
   });
 
@@ -211,9 +240,7 @@ function renderPostulaciones() {
 }
 
 function closeConfirmModal() {
-  if (confirmModal) {
-    confirmModal.classList.add("hidden");
-  }
+  confirmModal.classList.add("hidden");
   postulacionAEliminar = null;
 }
 
@@ -257,43 +284,47 @@ if (confirmDeleteBtn) {
   });
 }
 
-if (confirmModal) {
-  confirmModal.addEventListener("click", (event) => {
-    if (event.target === confirmModal) {
-      closeConfirmModal();
-    }
-  });
-}
-
-if (form) {
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    const empresa = document.getElementById("empresa").value.trim();
-    const rol = document.getElementById("rol").value.trim();
-    const fecha = document.getElementById("fecha").value;
-    const estado = document.getElementById("estado").value;
-
-    if (!empresa || !rol || !fecha) {
-      return;
-    }
-
-    const nuevaPostulacion = {
-      id: Date.now(),
-      empresa,
-      rol,
-      fecha,
-      estado,
-      nota: "",
-    };
-
-    postulaciones = Array.isArray(postulaciones) ? [nuevaPostulacion, ...postulaciones] : [nuevaPostulacion];
-    saveData();
+if (filterSelect) {
+  filterSelect.value = filtroActual;
+  filterSelect.addEventListener("change", (event) => {
+    filtroActual = event.target.value;
+    saveFilter();
     renderPostulaciones();
-    form.reset();
-    document.getElementById("estado").value = "Enviado";
   });
 }
+
+confirmModal.addEventListener("click", (event) => {
+  if (event.target === confirmModal) {
+    closeConfirmModal();
+  }
+});
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const empresa = document.getElementById("empresa").value.trim();
+  const rol = document.getElementById("rol").value.trim();
+  const fecha = document.getElementById("fecha").value;
+  const estado = document.getElementById("estado").value;
+
+  if (!empresa || !rol || !fecha) {
+    return;
+  }
+
+  postulaciones.unshift({
+    id: Date.now(),
+    empresa,
+    rol,
+    fecha,
+    estado,
+    nota: "",
+  });
+
+  saveData();
+  renderPostulaciones();
+  form.reset();
+  document.getElementById("estado").value = "Enviado";
+});
 
 initializeTheme();
 renderPostulaciones();
