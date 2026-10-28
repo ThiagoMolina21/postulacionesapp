@@ -111,25 +111,49 @@ function getResumenData() {
   }));
 }
 
+function applyFilter(nextFilter) {
+  filtroActual = nextFilter;
+  saveFilter();
+
+  if (filterSelect) {
+    filterSelect.value = nextFilter;
+  }
+
+  renderPostulaciones();
+}
+
 function renderResumen() {
   const resumenData = getResumenData();
 
   resumen.innerHTML = `
-    <div class="summary-card total">
+    <div class="summary-card total filterable ${filtroActual === "Todos" ? "is-active" : ""}" data-filter="Todos" tabindex="0" role="button" aria-label="Mostrar todas las postulaciones">
       <span class="summary-label">Total</span>
       <strong>${postulaciones.length}</strong>
     </div>
     ${resumenData
-      .map(
-        ({ estado, total }) => `
-          <div class="summary-card ${getStatusClass(estado)}">
+      .map(({ estado, total }) => {
+        const isActive = filtroActual === estado ? "is-active" : "";
+        return `
+          <div class="summary-card ${getStatusClass(estado)} filterable ${isActive}" data-filter="${estado}" tabindex="0" role="button" aria-label="Filtrar por ${estado}">
             <span class="summary-label">${estado}</span>
             <strong>${total}</strong>
           </div>
-        `
-      )
+        `;
+      })
       .join("")}
   `;
+
+  document.querySelectorAll(".summary-card.filterable").forEach((card) => {
+    const handleSelect = () => applyFilter(card.dataset.filter);
+
+    card.addEventListener("click", handleSelect);
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleSelect();
+      }
+    });
+  });
 }
 
 function renderPostulaciones() {
@@ -239,7 +263,9 @@ function renderPostulaciones() {
 }
 
 function closeConfirmModal() {
-  confirmModal.classList.add("hidden");
+  if (confirmModal) {
+    confirmModal.classList.add("hidden");
+  }
   postulacionAEliminar = null;
 }
 
@@ -286,9 +312,7 @@ if (confirmDeleteBtn) {
 if (filterSelect) {
   filterSelect.value = filtroActual;
   filterSelect.addEventListener("change", (event) => {
-    filtroActual = event.target.value;
-    saveFilter();
-    renderPostulaciones();
+    applyFilter(event.target.value);
   });
 }
 
@@ -301,30 +325,66 @@ if (confirmModal) {
 }
 
 if (form) {
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const empresa = document.getElementById("empresa").value.trim();
     const rol = document.getElementById("rol").value.trim();
     const fecha = document.getElementById("fecha").value;
     const estado = document.getElementById("estado").value;
+    const cvInput = document.getElementById("cvArchivo");
+    const archivo = cvInput && cvInput.files && cvInput.files[0] ? cvInput.files[0] : null;
 
     if (!empresa || !rol || !fecha) {
       return;
     }
 
-    postulaciones.unshift({
+    if (archivo) {
+      const isPdf = archivo.type === "application/pdf" || archivo.name.toLowerCase().endsWith(".pdf");
+
+      if (!isPdf) {
+        window.alert("Solo se aceptan archivos PDF para el CV.");
+        return;
+      }
+    }
+
+    const nuevaPostulacion = {
       id: Date.now(),
       empresa,
       rol,
       fecha,
       estado,
       nota: "",
-    });
+      cv: null,
+    };
 
+    if (archivo) {
+      try {
+        const reader = new FileReader();
+        const dataUrl = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("No se pudo leer el archivo del CV."));
+          reader.readAsDataURL(archivo);
+        });
+
+        nuevaPostulacion.cv = {
+          nombre: archivo.name,
+          tipo: archivo.type || "application/pdf",
+          data: dataUrl,
+        };
+      } catch (error) {
+        window.alert("No se pudo adjuntar el CV. Intenta nuevamente.");
+        return;
+      }
+    }
+
+    postulaciones = Array.isArray(postulaciones) ? [nuevaPostulacion, ...postulaciones] : [nuevaPostulacion];
     saveData();
     renderPostulaciones();
     form.reset();
+    if (cvInput) {
+      cvInput.value = "";
+    }
     document.getElementById("estado").value = "Enviado";
   });
 }
