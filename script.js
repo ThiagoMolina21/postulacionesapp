@@ -1,14 +1,5 @@
 const STORAGE_KEY = "postulaciones_app_data";
 const THEME_KEY = "postulaciones_theme";
-const FILTER_KEY = "postulaciones_filter";
-const USER_KEY = "postulaciones_app_user";
-
-const appShell = document.getElementById("appShell");
-const loginScreen = document.getElementById("loginScreen");
-const loginForm = document.getElementById("loginForm");
-const nombreUsuarioInput = document.getElementById("nombreUsuario");
-const userBadge = document.getElementById("userBadge");
-const logoutBtn = document.getElementById("logoutBtn");
 
 const form = document.getElementById("formPostulacion");
 const postulacionesList = document.getElementById("postulacionesList");
@@ -20,16 +11,22 @@ const confirmModal = document.getElementById("confirmModal");
 const confirmText = document.getElementById("confirmText");
 const cancelDeleteBtn = document.getElementById("cancelDelete");
 const confirmDeleteBtn = document.getElementById("confirmDelete");
-const filterSelect = document.getElementById("estadoFiltro");
 
-let postulaciones = loadData();
+let postulaciones = Array.isArray(loadData()) ? loadData() : [];
 let postulacionAEliminar = null;
-let filtroActual = loadFilter();
 
-function normalizePostulacion(postulacion) {
+function normalizePostulacion(postulacion = {}) {
   return {
     ...postulacion,
     nota: typeof postulacion.nota === "string" ? postulacion.nota : "",
+    cv:
+      postulacion.cv && typeof postulacion.cv === "object"
+        ? {
+            nombre: typeof postulacion.cv.nombre === "string" ? postulacion.cv.nombre : "CV adjunto",
+            tipo: typeof postulacion.cv.tipo === "string" ? postulacion.cv.tipo : "application/pdf",
+            data: typeof postulacion.cv.data === "string" ? postulacion.cv.data : "",
+          }
+        : null,
   };
 }
 
@@ -48,50 +45,11 @@ function loadData() {
   }
 }
 
-function loadUser() {
-  try {
-    return localStorage.getItem(USER_KEY) || "";
-  } catch (error) {
-    return "";
-  }
-}
-
-function saveUser(nombre) {
-  try {
-    localStorage.setItem(USER_KEY, nombre);
-  } catch (error) {
-    console.error("No se pudo guardar el usuario:", error);
-  }
-}
-
-function clearUser() {
-  try {
-    localStorage.removeItem(USER_KEY);
-  } catch (error) {
-    console.error("No se pudo cerrar la sesión:", error);
-  }
-}
-
-function loadFilter() {
-  try {
-    const saved = localStorage.getItem(FILTER_KEY);
-    return saved || "Todos";
-  } catch (error) {
-    return "Todos";
-  }
-}
-
-function saveFilter() {
-  try {
-    localStorage.setItem(FILTER_KEY, filtroActual);
-  } catch (error) {
-    console.error("No se pudo guardar el filtro en localStorage:", error);
-  }
-}
-
 function saveData() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(postulaciones));
+    const safeList = Array.isArray(postulaciones) ? postulaciones.map(normalizePostulacion) : [];
+    postulaciones = safeList;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeList));
   } catch (error) {
     console.error("No se pudo guardar en localStorage:", error);
   }
@@ -126,14 +84,6 @@ function getStatusClass(estado) {
   return map[estado] || "status-enviado";
 }
 
-function getFilteredPostulaciones() {
-  if (filtroActual === "Todos") {
-    return postulaciones;
-  }
-
-  return postulaciones.filter((postulacion) => postulacion.estado === filtroActual);
-}
-
 function getResumenData() {
   const estados = ["Enviado", "En proceso", "Rechazado", "Oferta"];
 
@@ -164,10 +114,32 @@ function renderResumen() {
   `;
 }
 
-function renderPostulaciones() {
-  const filtradas = getFilteredPostulaciones();
+function buildCvMarkup(postulacion) {
+  if (!postulacion.cv || !postulacion.cv.data) {
+    return `
+      <div class="cv-attachment empty">
+        <span class="cv-label">CV</span>
+        <span class="cv-empty">Sin archivo adjunto</span>
+      </div>
+    `;
+  }
 
-  if (!filtradas.length) {
+  const nombre = escapeHtml(postulacion.cv.nombre || "CV adjunto");
+
+  return `
+    <div class="cv-attachment">
+      <span class="cv-label">CV</span>
+      <a class="cv-link" href="${escapeHtml(postulacion.cv.data)}" download="${nombre}" target="_blank" rel="noopener noreferrer">
+        ${nombre}
+      </a>
+    </div>
+  `;
+}
+
+function renderPostulaciones() {
+  postulaciones = Array.isArray(postulaciones) ? postulaciones : [];
+
+  if (!postulaciones.length) {
     postulacionesList.innerHTML = "";
     emptyState.classList.remove("hidden");
     totalPostulaciones.textContent = "0";
@@ -176,9 +148,9 @@ function renderPostulaciones() {
   }
 
   emptyState.classList.add("hidden");
-  totalPostulaciones.textContent = String(filtradas.length);
+  totalPostulaciones.textContent = String(postulaciones.length);
 
-  postulacionesList.innerHTML = filtradas
+  postulacionesList.innerHTML = postulaciones
     .map((postulacion) => {
       const statusClass = getStatusClass(postulacion.estado);
       const options = ["Enviado", "En proceso", "Rechazado", "Oferta"]
@@ -187,6 +159,7 @@ function renderPostulaciones() {
             `<option value="${estado}" ${postulacion.estado === estado ? "selected" : ""}>${estado}</option>`
         )
         .join("");
+      const cvMarkup = buildCvMarkup(postulacion);
 
       return `
         <article class="postulacion-item">
@@ -210,6 +183,8 @@ function renderPostulaciones() {
               </select>
             </label>
           </div>
+
+          ${cvMarkup}
 
           <div class="note-block">
             <label class="note-label" for="nota-${postulacion.id}">Nota</label>
@@ -278,6 +253,16 @@ function closeConfirmModal() {
   postulacionAEliminar = null;
 }
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo del CV."));
+    reader.readAsDataURL(file);
+  });
+}
+
 function applyTheme(theme) {
   const nextTheme = theme === "dark" ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", nextTheme);
@@ -293,41 +278,10 @@ function initializeTheme() {
   applyTheme(savedTheme);
 }
 
-function renderAuthState() {
-  const userName = loadUser();
-  const isLoggedIn = Boolean(userName);
-
-  if (appShell) {
-    appShell.classList.toggle("hidden", !isLoggedIn);
-  }
-
-  if (loginScreen) {
-    loginScreen.classList.toggle("hidden", isLoggedIn);
-  }
-
-  if (userBadge) {
-    userBadge.textContent = isLoggedIn ? `Hola, ${userName}` : "";
-  }
-
-  if (logoutBtn) {
-    logoutBtn.classList.toggle("hidden", !isLoggedIn);
-  }
-}
-
 if (themeToggle) {
   themeToggle.addEventListener("click", () => {
     const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
     applyTheme(currentTheme === "dark" ? "light" : "dark");
-  });
-}
-
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    clearUser();
-    renderAuthState();
-    if (loginForm && nombreUsuarioInput) {
-      nombreUsuarioInput.focus();
-    }
   });
 }
 
@@ -349,15 +303,6 @@ if (confirmDeleteBtn) {
   });
 }
 
-if (filterSelect) {
-  filterSelect.value = filtroActual;
-  filterSelect.addEventListener("change", (event) => {
-    filtroActual = event.target.value;
-    saveFilter();
-    renderPostulaciones();
-  });
-}
-
 if (confirmModal) {
   confirmModal.addEventListener("click", (event) => {
     if (event.target === confirmModal) {
@@ -367,50 +312,63 @@ if (confirmModal) {
 }
 
 if (form) {
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const empresa = document.getElementById("empresa").value.trim();
     const rol = document.getElementById("rol").value.trim();
     const fecha = document.getElementById("fecha").value;
     const estado = document.getElementById("estado").value;
+    const cvInput = document.getElementById("cvArchivo");
+    const archivo = cvInput && cvInput.files && cvInput.files[0] ? cvInput.files[0] : null;
 
     if (!empresa || !rol || !fecha) {
       return;
     }
 
-    postulaciones.unshift({
+    if (archivo) {
+      const isPdf = archivo.type === "application/pdf" || archivo.name.toLowerCase().endsWith(".pdf");
+
+      if (!isPdf) {
+        window.alert("Solo se aceptan archivos PDF para el CV.");
+        return;
+      }
+    }
+
+    const nuevaPostulacion = {
       id: Date.now(),
       empresa,
       rol,
       fecha,
       estado,
       nota: "",
-    });
+      cv: null,
+    };
 
+    if (archivo) {
+      try {
+        const dataUrl = await readFileAsDataUrl(archivo);
+        nuevaPostulacion.cv = {
+          nombre: archivo.name,
+          tipo: archivo.type || "application/pdf",
+          data: dataUrl,
+        };
+      } catch (error) {
+        window.alert("No se pudo adjuntar el CV. Intenta nuevamente.");
+        return;
+      }
+    }
+
+    postulaciones = Array.isArray(postulaciones) ? [nuevaPostulacion, ...postulaciones] : [nuevaPostulacion];
     saveData();
     renderPostulaciones();
     form.reset();
+    if (cvInput) {
+      cvInput.value = "";
+    }
     document.getElementById("estado").value = "Enviado";
   });
 }
 
-if (loginForm && nombreUsuarioInput) {
-  loginForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    const nombre = nombreUsuarioInput.value.trim();
-    if (!nombre) {
-      nombreUsuarioInput.focus();
-      return;
-    }
-
-    saveUser(nombre);
-    renderAuthState();
-    loginForm.reset();
-  });
-}
-
 initializeTheme();
-renderAuthState();
 renderPostulaciones();
